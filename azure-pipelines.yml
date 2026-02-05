@@ -1,17 +1,6 @@
 # azure-pipelines.yml
-trigger:
-- main
-
-pool:
-  name: local-agent # your self-hosted agent
-
-stages:
-- stage: RunTests
-  displayName: 'Run API Tests'
-  jobs:
-  - job: TestJob
-    steps:
     - script: |
+        # create and use a virtual environment to avoid system-managed Python
         if command -v python3 >/dev/null 2>&1; then
           PY=python3
         elif command -v python >/dev/null 2>&1; then
@@ -20,13 +9,25 @@ stages:
           echo "Python is not installed on the agent"
           exit 1
         fi
-        $PY -m pip install --upgrade pip
+
+        $PY -m venv .venv
+        .venv/bin/python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then
-          $PY -m pip install -r requirements.txt
+          .venv/bin/pip install -r requirements.txt
         else
-          $PY -m pip install robotframework
+          .venv/bin/pip install robotframework
         fi
-      displayName: 'Install Robot Framework and dependencies'
+      displayName: 'Create venv and install Robot Framework'
+
+    - script: |
+        # run tests using the venv python to ensure robot is available
+        if [ -x .venv/bin/python ]; then
+          .venv/bin/python -m robot.run -d results tests/api
+        else
+          echo "Virtual environment missing or python not executable"
+          exit 1
+        fi
+      displayName: 'Run API robotfrmework (using venv)'
 
     - script: robot -d results tests/api
       displayName: 'Run API robotfrmework'
