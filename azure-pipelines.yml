@@ -35,5 +35,22 @@ stages:
   jobs:
   - job: HelloJob
     steps:
-    - script: echo "Hello World"
-      displayName: 'Print Hello World'
+    # - script: |
+    #           echo "Starting Agent"
+    #           curl -X POST https://sonalaitest.services.ai.azure.com/api/projects/my-foundry-project/openai/responses?api-version=2025-11-15-preview \
+    #           -H "Content-Type: application/json" \
+    #           -H "Authorization: Bearer $AZURE_AI_AUTH_TOKEN" \
+    #           -d '{
+    #           "model": "gpt-4.1-mini",
+    #           "input": "What is the size of France in square miles?"
+    #           }'
+    #   displayName: 'Print Hello World'
+    - task: AzureCLI@2
+      displayName: Azure CLI
+      inputs:
+        azureSubscription: mi_ai_agent
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          az --version
+          az account show
