@@ -13,9 +13,9 @@ steps:
   condition: succeededOrFailed()
   inputs:
     testResultsFormat: 'JUnit'
-    testResultsFiles: '**/output.xml'
-    searchFolder: '$(System.DefaultWorkingDirectory)/results'
-    mergeTestResults: true
+    testResultsFiles: 'results/output.xml'
+   # searchFolder: '$(System.DefaultWorkingDirectory)/results'
+   # mergeTestResults: true
     testRunTitle: 'Robot Framework Tests'
 
 - task: PublishBuildArtifacts@1
