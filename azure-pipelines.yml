@@ -8,3 +8,19 @@ pool:
 steps:
 - script: robot -d results tests/api
   displayName: 'Run API robotfrmework'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/output.xml'
+    searchFolder: '$(System.DefaultWorkingDirectory)/results'
+    mergeTestResults: true
+    testRunTitle: 'Robot Framework Tests'
+
+- task: PublishBuildArtifacts@1
+  condition: succeededOrFailed()
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/results'
+    ArtifactName: 'robot-test-results'
+    publishLocation: 'Container'
