@@ -1,0 +1,10 @@
+# azure-pipelines.yml
+trigger:
+- main
+
+pool:
+  name: local-agent-pat  # your self-hosted agent
+
+steps:
+- script: echo "Hello World from Azure DevOps pipeline!"
+  displayName: 'Print Hello World'
