@@ -11,6 +11,23 @@ stages:
   jobs:
   - job: TestJob
     steps:
+    - script: |
+        if command -v python3 >/dev/null 2>&1; then
+          PY=python3
+        elif command -v python >/dev/null 2>&1; then
+          PY=python
+        else
+          echo "Python is not installed on the agent"
+          exit 1
+        fi
+        $PY -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then
+          $PY -m pip install -r requirements.txt
+        else
+          $PY -m pip install robotframework
+        fi
+      displayName: 'Install Robot Framework and dependencies'
+
     - script: robot -d results tests/api
       displayName: 'Run API robotfrmework'
 
