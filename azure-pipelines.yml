@@ -32,12 +32,20 @@ stages:
 
 - stage: HelloWorld
   displayName: 'Print Hello World'
+  dependsOn: RunTests
   jobs:
   - job: HelloJob
     steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Test Results'
+      inputs:
+        buildType: 'current'
+        downloadType: 'specific'
+        itemPattern: 'robot-test-results/**'
+        downloadPath: '$(System.ArtifactsDirectory)'
   
     - task: AzureCLI@2
-      displayName: 'Call Azure AI API'
+      displayName: 'Call Azure AI API to Analyze Tests'
       inputs:
         azureSubscription: mi_ai_agent
         scriptType: bash
@@ -45,22 +53,42 @@ stages:
         inlineScript: |
           az --version
           az account show
-          curl -X POST "https://sonalaitest.cognitiveservices.azure.com/openai/deployments/gpt-4.1-mini/chat/completions?api-version=2025-01-01-preview" \
+          export AZURE_AI_AUTH_TOKEN=$(az account get-access-token --scope https://ai.azure.com/.default --query accessToken -o tsv)
+          echo "Token saved to AZURE_AI_AUTH_TOKEN"
+          
+          # Read the test results
+          TEST_RESULTS=$(cat $(System.ArtifactsDirectory)/robot-test-results/output.xml)
+          
+          # Send to AI for analysis
+          ANALYSIS=$(curl -X POST "https://sonalaitest.cognitiveservices.azure.com/openai/deployments/gpt-4.1-mini/chat/completions?api-version=2025-01-01-preview" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer $(AZURE_API_KEY)" \
-              -d '{
-                  "messages": [
+              -d "{
+                  \"messages\": [
                       {
-                          "role": "user",
-                          "content": "I am going to Paris, what should I see?"
+                          \"role\": \"user\",
+                          \"content\": \"Please analyze the following Robot Framework test results and provide a summary with insights: $TEST_RESULTS\"
                       }
                   ],
-                  "max_completion_tokens": 13107,
-                  "temperature": 1,
-                  "top_p": 1,
-                  "frequency_penalty": 0,
-                  "presence_penalty": 0,
-                  "model": "gpt-4.1-mini"
-              }'
+                  \"max_completion_tokens\": 13107,
+                  \"temperature\": 1,
+                  \"top_p\": 1,
+                  \"frequency_penalty\": 0,
+                  \"presence_penalty\": 0,
+                  \"model\": \"gpt-4.1-mini\"
+              }")
+          
+          # Save analysis to file
+          mkdir -p $(System.ArtifactsDirectory)/ai-analysis
+          echo "$ANALYSIS" > $(System.ArtifactsDirectory)/ai-analysis/test-analysis.json
+          echo "Analysis saved to test-analysis.json"
       env:
         AZURE_API_KEY: $(AZURE_API_KEY)
+    
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish AI Analysis'
+      condition: succeededOrFailed()
+      inputs:
+        PathtoPublish: '$(System.ArtifactsDirectory)/ai-analysis'
+        ArtifactName: 'ai-test-analysis'
+        publishLocation: 'Container'
