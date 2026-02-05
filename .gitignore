@@ -1,0 +1,17 @@
+# Mac system files
+.DS_Store
+
+# VS Code settings
+.vscode/
+
+# Poetry virtual environment / lock
+.venv/
+venv/
+env/
+poetry.lock
+
+# Robot Framework outputs
+results/
+log.html
+report.html
+output/

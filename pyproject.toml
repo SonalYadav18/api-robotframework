@@ -1,0 +1,19 @@
+[project]
+name = "apitest"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Sonal Yadav",email = "sonalyadav181991@gmail.com"}
+]
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "robotframework (>=7.4.1,<8.0.0)",
+    "robotframework-seleniumlibrary (>=6.8.0,<7.0.0)",
+    "webdrivermanager (>=0.10.0,<0.11.0)",
+    "robotframework-requests (>=0.9.7,<0.10.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
