@@ -6,5 +6,5 @@ pool:
   name: local-agent # your self-hosted agent
 
 steps:
-- script: ls
-  displayName: 'Print Hello World'
+- script: robot -d results tests/api
+  displayName: 'Run API robotfrmework'
