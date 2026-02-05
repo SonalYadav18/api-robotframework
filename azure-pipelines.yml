@@ -45,9 +45,22 @@ stages:
         inlineScript: |
           az --version
           az account show
-          export AZURE_AI_AUTH_TOKEN=$(az account get-access-token --scope https://ai.azure.com/.default --query accessToken -o tsv)
-          echo "Token saved to AZURE_AI_AUTH_TOKEN"
-          curl -X POST https://sonalaitest.services.ai.azure.com/api/projects/my-foundry-project/openai/responses?api-version=2025-11-15-preview \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $AZURE_AI_AUTH_TOKEN" \
-            -d '{"model": "gpt-4.1-mini", "input": "What is the size of France in square miles?"}'      
+          curl -X POST "https://sonalaitest.cognitiveservices.azure.com/openai/deployments/gpt-4.1-mini/chat/completions?api-version=2025-01-01-preview" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $(AZURE_API_KEY)" \
+              -d '{
+                  "messages": [
+                      {
+                          "role": "user",
+                          "content": "I am going to Paris, what should I see?"
+                      }
+                  ],
+                  "max_completion_tokens": 13107,
+                  "temperature": 1,
+                  "top_p": 1,
+                  "frequency_penalty": 0,
+                  "presence_penalty": 0,
+                  "model": "gpt-4.1-mini"
+              }'
+      env:
+        AZURE_API_KEY: $(AZURE_API_KEY)
