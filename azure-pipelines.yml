@@ -49,7 +49,7 @@ stages:
       displayName: Azure CLI
       inputs:
         azureSubscription: mi_ai_agent
-        scriptType: ps
+        scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
           az --version
