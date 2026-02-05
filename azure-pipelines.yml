@@ -6,5 +6,5 @@ pool:
   name: local-agent # your self-hosted agent
 
 steps:
-- script: echo "Hello World from Azure DevOps pipeline!"
+- script: ls
   displayName: 'Print Hello World'
