@@ -5,22 +5,35 @@ trigger:
 pool:
   name: local-agent # your self-hosted agent
 
-steps:
-- script: robot -d results tests/api
-  displayName: 'Run API robotfrmework'
+stages:
+- stage: RunTests
+  displayName: 'Run API Tests'
+  jobs:
+  - job: TestJob
+    steps:
+    - script: robot -d results tests/api
+      displayName: 'Run API robotfrmework'
 
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: 'results/output.xml'
-   # searchFolder: '$(System.DefaultWorkingDirectory)/results'
-   # mergeTestResults: true
-    testRunTitle: 'Robot Framework Tests'
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'results/output.xml'
+       # searchFolder: '$(System.DefaultWorkingDirectory)/results'
+       # mergeTestResults: true
+        testRunTitle: 'Robot Framework Tests'
 
-- task: PublishBuildArtifacts@1
-  condition: succeededOrFailed()
-  inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/results'
-    ArtifactName: 'robot-test-results'
-    publishLocation: 'Container'
+    - task: PublishBuildArtifacts@1
+      condition: succeededOrFailed()
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/results'
+        ArtifactName: 'robot-test-results'
+        publishLocation: 'Container'
+
+- stage: HelloWorld
+  displayName: 'Print Hello World'
+  jobs:
+  - job: HelloJob
+    steps:
+    - script: echo "Hello World"
+      displayName: 'Print Hello World'
