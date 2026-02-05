@@ -50,6 +50,7 @@ stages:
 - stage: AnalyzeTests
   displayName: 'Analyze Test Results with AI'
   dependsOn: RunTests
+  condition: succeededOrFailed()
   jobs:
   - job: AnalysisJob
     steps:
