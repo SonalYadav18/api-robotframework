@@ -2,8 +2,8 @@
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+pool: local-agent
+  #vmImage: ubuntu-latest
 
 stages:
 - stage: RunTests
