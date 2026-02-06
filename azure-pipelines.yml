@@ -3,7 +3,7 @@ trigger:
 - main
 
 pool:
-  name: local-agent # your self-hosted agent
+  vmImage: ubuntu-latest
 
 stages:
 - stage: RunTests
@@ -11,25 +11,41 @@ stages:
   jobs:
   - job: TestJob
     steps:
-    - script: |
-        # create and use a virtual environment to avoid system-managed Python
-        if command -v python3 >/dev/null 2>&1; then
-          PY=python3
-        elif command -v python >/dev/null 2>&1; then
-          PY=python
-        else
-          echo "Python is not installed on the agent"
-          exit 1
-        fi
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.11'
+        addToPath: true
 
-        $PY -m venv .venv
+    - script: |
+        # create and use a virtual environment with the selected Python
+        python -m venv .venv
         .venv/bin/python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then
+
+        # Prefer pyproject.toml (Poetry) if present; fall back to requirements.txt
+        if [ -f pyproject.toml ]; then
+          .venv/bin/python -m pip install poetry
+          .venv/bin/poetry export -f requirements.txt --without-hashes -o requirements-pip.txt || true
+          if [ -f requirements-pip.txt ]; then
+            .venv/bin/pip install -r requirements-pip.txt
+          else
+            .venv/bin/pip install "robotframework>=7.4.1,<8.0.0" "robotframework-requests>=0.9.7,<0.10.0"
+          fi
+        elif [ -f requirements.txt ]; then
           .venv/bin/pip install -r requirements.txt
         else
-          .venv/bin/pip install robotframework robotframework-requests
+          .venv/bin/pip install "robotframework>=7.4.1,<8.0.0" "robotframework-requests>=0.9.7,<0.10.0"
         fi
       displayName: 'Create venv and install Robot Framework'
+
+    - script: |
+        # Diagnostic: show Python and key package versions installed in the venv
+        echo "--- Python ---"
+        .venv/bin/python -V || true
+        echo "--- pip show ---"
+        .venv/bin/pip show requests robotframework robotframework-requests || true
+        echo "--- pip freeze ---"
+        .venv/bin/pip freeze || true
+      displayName: 'Show installed Python and package versions'
 
     - script: |
         # run tests using the venv python to ensure robot is available
