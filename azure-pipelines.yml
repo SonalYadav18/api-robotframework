@@ -79,37 +79,47 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          az --version
-          az account show
-          export AZURE_AI_AUTH_TOKEN=$(az account get-access-token --scope https://ai.azure.com/.default --query accessToken -o tsv)
-          echo "Token saved to AZURE_AI_AUTH_TOKEN"
+          # Read test results
+          TEST_RESULTS=$(cat $(System.ArtifactsDirectory)/robot-test-results/output.xml)
           
-          # Read the test results and escape for JSON
-          TEST_RESULTS=$(cat $(System.ArtifactsDirectory)/robot-test-results/output.xml | python3 -c "import sys, json; print(json.dumps(sys.stdin.read()))")
+          # Build JSON payload using jq to properly escape all values
+          PAYLOAD=$(jq -n \
+            --arg results "$TEST_RESULTS" \
+            '{
+              "messages": [
+                {
+                  "role": "user",
+                  "content": ("You are a QA test analyst. Analyze the Robot Framework test results below and provide a clear, professional report. Use this exact format:\n\n## TEST EXECUTION SUMMARY\n- Total Tests: [count]\n- Passed: [count]\n- Failed: [count]\n- Pass Rate: [percentage]\n\n## FAILED TESTS\nList each failed test with:\n- Test Name\n- Failure Reason (brief)\n- Error Details\n\n## ROOT CAUSES\nIdentify the main issues causing failures:\n1. [Issue 1]\n2. [Issue 2]\n(etc.)\n\n## SOLUTIONS\nProvide specific fixes for each issue:\n1. [Issue] -> Solution\n2. [Issue] -> Solution\n(etc.)\n\n## ACTION ITEMS\n- [ ] Fix item 1\n- [ ] Fix item 2\n(etc.)\n\nTest Results:\n" + $results)
+                }
+              ],
+              "max_completion_tokens": 13107,
+              "temperature": 0.5,
+              "top_p": 1,
+              "frequency_penalty": 0,
+              "presence_penalty": 0,
+              "model": "gpt-4.1-mini"
+            }')
           
           # Send to AI for analysis
-          ANALYSIS=$(curl -X POST "https://sonalaitest.cognitiveservices.azure.com/openai/deployments/gpt-4.1-mini/chat/completions?api-version=2025-01-01-preview" \
+          ANALYSIS=$(curl -s -X POST "https://sonalaitest.cognitiveservices.azure.com/openai/deployments/gpt-4.1-mini/chat/completions?api-version=2025-01-01-preview" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer $(AZURE_API_KEY)" \
-              -d "{
-                  \"messages\": [
-                      {
-                          \"role\": \"user\",
-                          \"content\": \"Please analyze the following Robot Framework test results and provide a comprehensive summary with insights. If any tests failed, identify the root causes and provide detailed solutions to fix them. Format the response with sections for: 1) Summary, 2) Failed Tests Analysis, 3) Recommended Solutions, 4) Action Items. Test Results: $TEST_RESULTS\"
-                      }
-                  ],
-                  \"max_completion_tokens\": 13107,
-                  \"temperature\": 1,
-                  \"top_p\": 1,
-                  \"frequency_penalty\": 0,
-                  \"presence_penalty\": 0,
-                  \"model\": \"gpt-4.1-mini\"
-              }")
+              -d "$PAYLOAD")
           
-          # Save analysis to file
+          # Extract the analysis text from the JSON response
+          ANALYSIS_TEXT=$(echo "$ANALYSIS" | jq -r '.choices[0].message.content // .error.message // "Error: Could not parse response"')
+          
+          # Save both JSON and readable text
           mkdir -p $(System.ArtifactsDirectory)/ai-analysis
           echo "$ANALYSIS" > $(System.ArtifactsDirectory)/ai-analysis/test-analysis.json
-          echo "Analysis saved to test-analysis.json"
+          echo "$ANALYSIS_TEXT" > $(System.ArtifactsDirectory)/ai-analysis/test-analysis.txt
+          
+          # Display analysis in logs for easy viewing
+          echo "================================"
+          echo "TEST ANALYSIS RESULTS"
+          echo "================================"
+          echo "$ANALYSIS_TEXT"
+          echo "================================"
       env:
         AZURE_API_KEY: $(AZURE_API_KEY)
     
