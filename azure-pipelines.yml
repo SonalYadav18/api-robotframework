@@ -27,8 +27,7 @@ stages:
         if [ -f requirements.txt ]; then
           .venv/bin/pip install -r requirements.txt
         else
-          # Pin packages to match pyproject.toml expectations (use same behavior as local)
-          .venv/bin/pip install "robotframework>=7.4.1,<8.0.0" "robotframework-requests>=0.9.7,<0.10.0"
+          .venv/bin/pip install robotframework robotframework-requests
         fi
       displayName: 'Create venv and install Robot Framework'
 

@@ -12,4 +12,6 @@ Delete Single Post
     #Validations
     Should Be Equal As Numbers    ${response.status_code}    200
 
-    Should Be Equal     ${response.content}    {}
+    ${res_content}=    convert to string    ${response.content}    
+
+    Should Be Equal     ${res_content}    {}
