@@ -7,7 +7,7 @@ Post Single Post
     Create session    mysession    ${BASE_URL}    
     ${body}=    Create Dictionary    userId=180       title=This is Sonal Yadav   body=I like name Geet
     ${header}=    Create Dictionary    Content-Type=application/json
-    ${response}=    POST On Session    mysession    /posts    json=${body}    headers=${header}
+    ${response}=    POST On Session    mysession    /post    json=${body}    headers=${header}
 
  
     log to console   ${response.status_code}
