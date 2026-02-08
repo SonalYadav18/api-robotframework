@@ -7,7 +7,7 @@ pool:
 
 stages:
 - stage: RunTests
-  displayName: 'Run API Tests'
+  displayName: 'Robot API Tests'
   jobs:
   - job: TestJob
     steps:
@@ -58,7 +58,7 @@ stages:
         publishLocation: 'Container'
 
 - stage: AnalyzeTests
-  displayName: 'Analyze Test Results with AI'
+  displayName: 'AI Test Analyser'
   dependsOn: RunTests
   condition: succeededOrFailed()
   jobs:
