@@ -10,7 +10,11 @@ Delete Single Post
     Log To Console    ${response.content}
 
     #Validations
+
+    # Validating Response code
     Should Be Equal As Numbers    ${response.status_code}    200
+
+    # Validating response content
 
     ${res_content}=    convert to string    ${response.content}    
 
