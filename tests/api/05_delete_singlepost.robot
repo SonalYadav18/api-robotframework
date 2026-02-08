@@ -16,6 +16,8 @@ Delete Single Post
 
     # Validating response content
 
-    ${res_content}=    convert to string    ${response.content}    
+  #  ${res_content}=    convert to string    ${response.content}    
 
-    Should Be Equal     ${res_content}    {}
+   # Should Be Equal     ${res_content}    {}
+
+   Should be Equal    ${response.content}    {}
