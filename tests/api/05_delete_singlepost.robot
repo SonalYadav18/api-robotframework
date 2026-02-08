@@ -9,15 +9,14 @@ Delete Single Post
     Log To Console    ${response.status_code}
     Log To Console    ${response.content}
 
-    #Validations
+
 
     # Validating Response code
     Should Be Equal As Numbers    ${response.status_code}    200
 
     # Validating response content
 
-  #  ${res_content}=    convert to string    ${response.content}    
+   ${res_content}=    convert to string    ${response.content}    
+    Should Be Equal     ${res_content}    {}
 
-   # Should Be Equal     ${res_content}    {}
-
-   Should be Equal    ${response.content}    {}
+   #Should be Equal    ${response.content}    {}
